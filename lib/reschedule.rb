@@ -47,7 +47,11 @@ module Reschedule
     def exists?
       current_time < expired_time
     end
-      
+    
+    def get
+      return redis.smembers @id
+    end
+    
     def available?(hour, minute, duration=1)
       raise NoRuleError unless self.exists?
       
@@ -60,7 +64,7 @@ module Reschedule
       return true
     end
     
-    def open(hour, minute, duration)
+    def mark(hour, minute, duration)
       t = timestamp(hour, minute)
       
       (t..(t+duration)).each do |m|
@@ -70,7 +74,7 @@ module Reschedule
       redis.expire @id, expired_seconds
     end
         
-    def close(hour, minute, duration)
+    def clean(hour, minute, duration)
       t = timestamp(hour, minute)
       
       # ignore first and last minute for closed time
@@ -81,7 +85,7 @@ module Reschedule
       redis.expire @id, expired_seconds
     end
     
-    def clean
+    def clean_all
       redis.del @id
     end
     

@@ -9,7 +9,7 @@ describe Reschedule do
   end
   
   after do
-    @day_7_4.clean
+    @day_7_4.clean_all
   end
 
   describe ".exists?" do
@@ -20,6 +20,18 @@ describe Reschedule do
     it "should return false if the date is expired" do      
       @day_7_4.current_time = Time.utc(2011,7,4,0,0,3)
       @day_7_4.exists?.should be_false
+    end    
+  end
+  
+  describe ".get" do
+    it "should return [] by default" do
+      @day_7_4.get.should == []
+    end
+    
+    it "should return available minutes" do
+      @day_7_4.mark(0,0, 3)
+      @day_7_4.mark(10,0, 1)
+      @day_7_4.get.should == ["0", "1", "2", "3", "600", "601"]
     end    
   end
   
@@ -34,8 +46,8 @@ describe Reschedule do
       lambda{ @day_7_4.available?(10,0) }.should raise_error Reschedule::NoRuleError
     end
     
-    example "assign open time" do
-      @day_7_4.open(8,0, 60*8) # 8 ~ 16 is open
+    example "mark time" do
+      @day_7_4.mark(8,0, 60*8) # 8 ~ 16 is mark
       
       @day_7_4.available?(7,30, 30).should be_false
       @day_7_4.available?(7,59, 1).should be_false
@@ -49,9 +61,9 @@ describe Reschedule do
       @day_7_4.available?(16,0).should be_false
     end
     
-    example "assign open and close time" do
-      @day_7_4.open(8,0, 60*8) # 8 ~ 16 is open
-      @day_7_4.close(12,0, 60) # 12 ~ 13 is closed
+    example "mark and clean time" do
+      @day_7_4.mark(8,0, 60*8) # 8 ~ 16 is mark
+      @day_7_4.clean(12,0, 60) # 12 ~ 13 is cleand
       
       @day_7_4.available?(11,30, 30).should be_true
       
@@ -64,11 +76,11 @@ describe Reschedule do
     end
   end
   
-  describe ".clean" do
-    it "should clean data" do
-      @day_7_4.open(8,0,1)
+  describe ".clean_all" do
+    it "should clean all data" do
+      @day_7_4.mark(8,0,1)
       @day_7_4.available?(8,0).should be_true
-      @day_7_4.clean
+      @day_7_4.clean_all
       @day_7_4.available?(8,0).should be_false
     end
   end
