@@ -29,27 +29,15 @@ module Reschedule
     
     def initialize(id, year, month, day)
       @id = "#{id}-#{year}-#{month}-#{day}"
-      @year, @month, @day = year, month, day
+      mark(0, -1, 0) # for exists?
     end
-    
-    def expired_time
-      Time.utc(@year, @month, @day) + expired_seconds
-    end
-    
-    def current_time
-      @current_time || Time.now
-    end
-    
-    def current_time=(value)
-      @current_time = value
-    end
-    
+        
     def exists?
-      current_time < expired_time
+      redis.exists(@id)
     end
     
     def get
-      return redis.smembers @id
+      return redis.smembers(@id) - ["-1"]
     end
     
     def available?(hour, minute, duration=1)

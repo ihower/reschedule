@@ -3,9 +3,8 @@ require 'reschedule'
 describe Reschedule do
 
   before do
-    Reschedule.setup(Redis.new, 3) # 3 seconds 
+    Reschedule.setup(Redis.new, 1) # 3 seconds 
     @day_7_4 = Reschedule::Day.new("clinic_1", 2011,7,4)
-    @day_7_4.current_time = Time.utc(2011,7,4,0,0,0)
   end
   
   after do
@@ -17,8 +16,8 @@ describe Reschedule do
       @day_7_4.exists?.should be_true
     end
     
-    it "should return false if the date is expired" do      
-      @day_7_4.current_time = Time.utc(2011,7,4,0,0,3)
+    it "should return false if the date is expired" do
+      sleep(2) 
       @day_7_4.exists?.should be_false
     end    
   end
@@ -42,7 +41,7 @@ describe Reschedule do
     end
     
     it "should raise NoRuleError if all data are expired" do
-      @day_7_4.current_time = Time.utc(2011,7,4,0,0,3)
+      sleep(2)
       lambda{ @day_7_4.available?(10,0) }.should raise_error Reschedule::NoRuleError
     end
     
@@ -78,10 +77,9 @@ describe Reschedule do
   
   describe ".clean_all" do
     it "should clean all data" do
-      @day_7_4.mark(8,0,1)
-      @day_7_4.available?(8,0).should be_true
+      @day_7_4.exists?.should be_true
       @day_7_4.clean_all
-      @day_7_4.available?(8,0).should be_false
+      @day_7_4.exists?.should be_false
     end
   end
   
